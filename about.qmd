@@ -1,0 +1,19 @@
+---
+title: "About"
+about:
+  template: jolla
+  links:
+    - icon: linkedin
+      text: LinkedIn
+      href: https://www.linkedin.com/in/rizdi-aprilian-rar217935b1/
+    - icon: github
+      text: Github
+      href: https://github.com/rizdiaprilian
+    - icon: file-earmark-code
+      text: Kaggle
+      href: https://www.kaggle.com/kurosakishusuke
+
+---
+
+This blog is the gathering of my journey I have taken in machine learning.
+This is built with a sole purpose of solidify my affinity to this field, and writing is a great way to do.
