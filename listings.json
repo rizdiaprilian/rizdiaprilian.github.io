@@ -4,6 +4,7 @@
     "items": [
       "/posts/hello_world/index.html",
       "/posts/post-with-code/index.html",
+      "/posts/XGBoost_to_BentoML/index.html",
       "/posts/welcome/index.html"
     ]
   }
