@@ -2,18 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://rizdiaprilian.github.io/about.html</loc>
-    <lastmod>2023-06-09T10:31:55.933Z</lastmod>
+    <lastmod>2023-06-09T10:55:52.220Z</lastmod>
   </url>
   <url>
     <loc>https://rizdiaprilian.github.io/index.html</loc>
-    <lastmod>2023-06-09T10:31:57.008Z</lastmod>
+    <lastmod>2023-06-09T10:55:53.218Z</lastmod>
+  </url>
+  <url>
+    <loc>https://rizdiaprilian.github.io/posts/hello_world/index.html</loc>
+    <lastmod>2023-06-09T10:55:53.755Z</lastmod>
   </url>
   <url>
     <loc>https://rizdiaprilian.github.io/posts/post-with-code/index.html</loc>
-    <lastmod>2023-06-09T10:31:57.693Z</lastmod>
+    <lastmod>2023-06-09T10:55:54.276Z</lastmod>
   </url>
   <url>
     <loc>https://rizdiaprilian.github.io/posts/welcome/index.html</loc>
-    <lastmod>2023-06-09T10:31:58.326Z</lastmod>
+    <lastmod>2023-06-09T10:55:54.810Z</lastmod>
   </url>
 </urlset>
