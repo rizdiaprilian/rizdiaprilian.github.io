@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.361">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Rizdi Aprilian">
+<meta name="dcterms.date" content="2023-06-17">
+
+<title>rizdiaprilian.github.io - Hyperparameter Optimization with Optuna</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">rizdiaprilian.github.io</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html" rel="" target="">
+ <span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/rizdiaprilian" rel="" target=""><i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.kaggle.com/kurosakishusuke" rel="" target=""><i class="bi bi-file-earmark-code" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+            <div class="quarto-navbar-tools">
+</div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Hyperparameter Optimization with Optuna</h1>
+                                <div class="quarto-categories">
+                <div class="quarto-category">Hyperparameter</div>
+                <div class="quarto-category">Optuna</div>
+                <div class="quarto-category">Bayesian</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Rizdi Aprilian </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">June 17, 2023</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<p>In developing predictive machine learning, a practice that many could not overlook at is pursuing a hyperparameter that return the best possible of optimum prediction on data. Grid search and Randomized search have been greatly relied on for quite some time. Grid search selects a set collection of values to test for each parameter by creating permutations of each value from each searching group, as for many perceive this method as brute-force-search. Random search, meanwhile, performs testing the effects of different hyperparameters at the same time using random sampling of each group, and this technique comes at the cost of suboptimal training while greatly reduce computational load and time required to run grid search.</p>
+<p>That’s where Optuna fill the gap. Known from many as framework agnostic (meaning that regardless of machine learning libraries you’re using), Optuna is specifically designed for running hyperparameter optimization in automatic fashion. What’s more is that Optuna also supports for parallelism - scaling this task from one machine to multiple machine in a cluster. However, in this page, I’ll demonstrated how Optuna can assist in arriving at hyperparameter with optimum prediction in local machine. LGBM is chosen.</p>
+<div class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.compose <span class="im">import</span> ColumnTransformer</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> Pipeline</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler, MinMaxScaler, LabelEncoder, OneHotEncoder</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split, KFold, StratifiedKFold</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> roc_auc_score, accuracy_score, confusion_matrix, ConfusionMatrixDisplay, RocCurveDisplay</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> optuna</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> lightgbm <span class="im">as</span> lgb</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> lightgbm <span class="im">import</span> LGBMClassifier</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">'ignore'</span>)</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>pd.set_option(<span class="st">'display.max_columns'</span>, <span class="dv">100</span>)</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>plt.style.use(<span class="st">'fivethirtyeight'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>c:\Users\rizdi\miniconda3\envs\mlops_monitor\lib\site-packages\tqdm\auto.py:22: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html
+  from .autonotebook import tqdm as notebook_tqdm</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.read_csv(<span class="st">'normalized_data.csv'</span>, sep<span class="op">=</span><span class="st">','</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>df.head(<span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">age</th>
+<th data-quarto-table-cell-role="th">anaemia</th>
+<th data-quarto-table-cell-role="th">creatinine_phosphokinase</th>
+<th data-quarto-table-cell-role="th">diabetes</th>
+<th data-quarto-table-cell-role="th">ejection_fraction</th>
+<th data-quarto-table-cell-role="th">high_blood_pressure</th>
+<th data-quarto-table-cell-role="th">platelets</th>
+<th data-quarto-table-cell-role="th">serum_creatinine</th>
+<th data-quarto-table-cell-role="th">serum_sodium</th>
+<th data-quarto-table-cell-role="th">sex</th>
+<th data-quarto-table-cell-role="th">smoking</th>
+<th data-quarto-table-cell-role="th">time</th>
+<th data-quarto-table-cell-role="th">DEATH_EVENT</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>75.0</td>
+<td>0</td>
+<td>582</td>
+<td>0</td>
+<td>20</td>
+<td>1</td>
+<td>265000.00</td>
+<td>1.9</td>
+<td>130</td>
+<td>1</td>
+<td>0</td>
+<td>4</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>55.0</td>
+<td>0</td>
+<td>7861</td>
+<td>0</td>
+<td>38</td>
+<td>0</td>
+<td>263358.03</td>
+<td>1.1</td>
+<td>136</td>
+<td>1</td>
+<td>0</td>
+<td>6</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>65.0</td>
+<td>0</td>
+<td>146</td>
+<td>0</td>
+<td>20</td>
+<td>0</td>
+<td>162000.00</td>
+<td>1.3</td>
+<td>129</td>
+<td>1</td>
+<td>1</td>
+<td>7</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>50.0</td>
+<td>1</td>
+<td>111</td>
+<td>0</td>
+<td>20</td>
+<td>0</td>
+<td>210000.00</td>
+<td>1.9</td>
+<td>137</td>
+<td>1</td>
+<td>0</td>
+<td>7</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>65.0</td>
+<td>1</td>
+<td>160</td>
+<td>1</td>
+<td>20</td>
+<td>0</td>
+<td>327000.00</td>
+<td>2.7</td>
+<td>116</td>
+<td>0</td>
+<td>0</td>
+<td>8</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>cat_cols <span class="op">=</span> <span class="bu">list</span>(<span class="bu">filter</span>(<span class="kw">lambda</span> x: x <span class="cf">if</span> <span class="bu">len</span>(df[x].unique()) <span class="op">&lt;=</span> <span class="dv">3</span> <span class="cf">else</span> <span class="va">None</span>, df.columns))</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>df[cat_cols] <span class="op">=</span> df[cat_cols].astype(<span class="st">'category'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> df.loc[:,:<span class="st">"time"</span>]</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> df.loc[:,[<span class="st">"DEATH_EVENT"</span>]]</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(X, y, test_size<span class="op">=</span><span class="fl">0.2</span>, random_state<span class="op">=</span><span class="dv">42</span>, stratify<span class="op">=</span>y)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>X_train.shape, X_test.shape, y_train.shape, y_test.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<pre><code>((239, 12), (60, 12), (239, 1), (60, 1))</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>cat_columns <span class="op">=</span> [<span class="st">'anaemia'</span>, <span class="st">'diabetes'</span>, <span class="st">'high_blood_pressure'</span>, <span class="st">'sex'</span>, <span class="st">'smoking'</span>]</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>num_columns <span class="op">=</span> [<span class="st">'age'</span>, <span class="st">'creatinine_phosphokinase'</span>, <span class="st">'ejection_fraction'</span>, <span class="st">'platelets'</span>, <span class="st">'serum_creatinine'</span>, <span class="st">'serum_sodium'</span>, <span class="st">'time'</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Transformer Pipeline</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>num_transformer <span class="op">=</span> Pipeline(steps<span class="op">=</span>[</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'scaler'</span>, StandardScaler())</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>])</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>cat_transformer <span class="op">=</span> Pipeline(steps<span class="op">=</span>[</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'onehot'</span>, OneHotEncoder(drop<span class="op">=</span><span class="st">'first'</span>, dtype<span class="op">=</span>np.<span class="bu">int</span>))</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>])</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co">## Column Transformer</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>preprocessor <span class="op">=</span> ColumnTransformer([</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'numeric'</span>, num_transformer, num_columns),</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'categoric'</span>, cat_transformer, cat_columns),</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>])</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="co">## Apply Column Transformer</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>X_train <span class="op">=</span> preprocessor.fit_transform(X_train)</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>X_test <span class="op">=</span> preprocessor.transform(X_test)</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a><span class="co">## Label Encoding</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>y_transformer <span class="op">=</span> LabelEncoder()</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>y_train <span class="op">=</span> y_transformer.fit_transform(y_train).ravel()</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>y_test <span class="op">=</span> y_transformer.transform(y_test).ravel()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> objective(trial):</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    params <span class="op">=</span> {</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">'random_state'</span>: <span class="dv">23</span>,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>        <span class="st">'n_estimators'</span>: <span class="dv">200</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>        <span class="st">'reg_alpha'</span>: trial.suggest_float(<span class="st">'reg_alpha'</span>, <span class="fl">1E-10</span>, <span class="fl">1E-5</span>),</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>        <span class="st">'reg_lambda'</span>: trial.suggest_float(<span class="st">'reg_lambda'</span>, <span class="fl">1E-10</span>, <span class="fl">1E-5</span>),</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>        <span class="st">'num_leaves'</span>: trial.suggest_int(<span class="st">'num_leaves'</span>, <span class="dv">150</span>, <span class="dv">300</span>),</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">'learning_rate'</span>: trial.suggest_float(<span class="st">'learning_rate'</span>, <span class="fl">0.01</span>, <span class="fl">0.1</span>),</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>        <span class="st">'max_depth'</span>: trial.suggest_int(<span class="st">'max_depth'</span>, <span class="dv">10</span>,<span class="dv">50</span>),</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>        <span class="st">'colsample_bytree'</span>: trial.suggest_float(<span class="st">'colsample_bytree'</span>, <span class="fl">0.01</span>, <span class="fl">0.1</span>),</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">'subsample'</span>: trial.suggest_float(<span class="st">'subsample'</span>, <span class="fl">0.1</span>, <span class="fl">1.0</span>),</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">'min_child_samples'</span>: trial.suggest_int(<span class="st">'min_child_samples'</span>, <span class="dv">1</span>, <span class="dv">20</span>),</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>        <span class="st">'subsample_freq'</span>: trial.suggest_int(<span class="st">'subsample_freq'</span>, <span class="dv">1</span>, <span class="dv">10</span>),</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>        <span class="st">'objective'</span>: <span class="st">'binary'</span>,</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>        <span class="st">'metric'</span>: <span class="st">'binary_logloss'</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create the  LGBMClassifier learning object</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>    lgbm_model <span class="op">=</span> LGBMClassifier(<span class="op">**</span>params)</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>    lgbm_model.fit(X_train, y_train)</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Make predictions on the validation set</span></span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>    y_pred <span class="op">=</span> lgbm_model.predict(X_test)</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Calculate MAE as the evaluation metric</span></span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>    roc_auc <span class="op">=</span> roc_auc_score(y_test, y_pred)</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Return the evaluation metric value as the objective value to be minimized</span></span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> roc_auc</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="op">%%</span>time</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Create an Optuna study</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>study <span class="op">=</span> optuna.create_study(direction<span class="op">=</span><span class="st">'maximize'</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>study.optimize(objective, n_trials<span class="op">=</span><span class="dv">100</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>[I 2023-06-17 13:34:12,545] A new study created in memory with name: no-name-f9f4f083-528e-4b8a-bce8-2ade3b89f346
+[I 2023-06-17 13:34:12,709] Trial 0 finished with value: 0.7246469833119383 and parameters: {'reg_alpha': 5.270142430321572e-06, 'reg_lambda': 7.0947209053917484e-06, 'num_leaves': 178, 'learning_rate': 0.0891781733041886, 'max_depth': 35, 'colsample_bytree': 0.03090950619557188, 'subsample': 0.24825549471540287, 'min_child_samples': 20, 'subsample_freq': 9}. Best is trial 0 with value: 0.7246469833119383.
+[I 2023-06-17 13:34:13,227] Trial 1 finished with value: 0.6861360718870345 and parameters: {'reg_alpha': 7.025236249526668e-06, 'reg_lambda': 4.571522404954949e-06, 'num_leaves': 256, 'learning_rate': 0.04958566829222305, 'max_depth': 25, 'colsample_bytree': 0.07986235314153306, 'subsample': 0.4107035959692341, 'min_child_samples': 3, 'subsample_freq': 8}. Best is trial 0 with value: 0.7246469833119383.
+[I 2023-06-17 13:34:13,341] Trial 2 finished with value: 0.5 and parameters: {'reg_alpha': 6.554675169962187e-07, 'reg_lambda': 6.906462441481608e-06, 'num_leaves': 176, 'learning_rate': 0.033577259275936314, 'max_depth': 29, 'colsample_bytree': 0.024786159372631178, 'subsample': 0.12259677265568039, 'min_child_samples': 20, 'subsample_freq': 8}. Best is trial 0 with value: 0.7246469833119383.
+[I 2023-06-17 13:34:13,513] Trial 3 finished with value: 0.5808729139922978 and parameters: {'reg_alpha': 3.2574904058589524e-06, 'reg_lambda': 8.436676162704015e-06, 'num_leaves': 205, 'learning_rate': 0.02214270724529358, 'max_depth': 41, 'colsample_bytree': 0.09762750003330573, 'subsample': 0.953600458589063, 'min_child_samples': 16, 'subsample_freq': 4}. Best is trial 0 with value: 0.7246469833119383.
+[I 2023-06-17 13:34:13,703] Trial 4 finished with value: 0.5667522464698331 and parameters: {'reg_alpha': 3.817742738696571e-06, 'reg_lambda': 9.259064360859238e-06, 'num_leaves': 159, 'learning_rate': 0.014244613037565787, 'max_depth': 34, 'colsample_bytree': 0.09660950222198374, 'subsample': 0.7569510367909991, 'min_child_samples': 8, 'subsample_freq': 4}. Best is trial 0 with value: 0.7246469833119383.
+[I 2023-06-17 13:34:13,867] Trial 5 finished with value: 0.7528883183568679 and parameters: {'reg_alpha': 5.118465198769174e-06, 'reg_lambda': 9.878546242518675e-06, 'num_leaves': 271, 'learning_rate': 0.06886779418441034, 'max_depth': 22, 'colsample_bytree': 0.03610541389028709, 'subsample': 0.7043411890979814, 'min_child_samples': 14, 'subsample_freq': 4}. Best is trial 5 with value: 0.7528883183568679.
+[I 2023-06-17 13:34:14,228] Trial 6 finished with value: 0.6880616174582799 and parameters: {'reg_alpha': 1.1393237505370685e-06, 'reg_lambda': 2.8290134609524352e-06, 'num_leaves': 231, 'learning_rate': 0.05428959460075924, 'max_depth': 19, 'colsample_bytree': 0.09701760484822311, 'subsample': 0.747610443625731, 'min_child_samples': 1, 'subsample_freq': 1}. Best is trial 5 with value: 0.7528883183568679.
+[I 2023-06-17 13:34:14,360] Trial 7 finished with value: 0.7265725288831836 and parameters: {'reg_alpha': 4.293252027830692e-06, 'reg_lambda': 6.003048962738638e-06, 'num_leaves': 204, 'learning_rate': 0.08577091924086043, 'max_depth': 32, 'colsample_bytree': 0.011906863234003065, 'subsample': 0.5313684227695668, 'min_child_samples': 12, 'subsample_freq': 4}. Best is trial 5 with value: 0.7528883183568679.
+[I 2023-06-17 13:34:14,533] Trial 8 finished with value: 0.607188703465982 and parameters: {'reg_alpha': 8.547713460570772e-06, 'reg_lambda': 1.786423399920629e-06, 'num_leaves': 234, 'learning_rate': 0.02004922688689454, 'max_depth': 33, 'colsample_bytree': 0.058618875197461874, 'subsample': 0.9347175747125706, 'min_child_samples': 13, 'subsample_freq': 3}. Best is trial 5 with value: 0.7528883183568679.
+[I 2023-06-17 13:34:14,640] Trial 9 finished with value: 0.6335044929396663 and parameters: {'reg_alpha': 3.435893063029137e-06, 'reg_lambda': 8.037712268634104e-06, 'num_leaves': 247, 'learning_rate': 0.037446162368450546, 'max_depth': 48, 'colsample_bytree': 0.09121749567040516, 'subsample': 0.12181927425113656, 'min_child_samples': 12, 'subsample_freq': 10}. Best is trial 5 with value: 0.7528883183568679.
+[I 2023-06-17 13:34:14,913] Trial 10 finished with value: 0.7124518613607188 and parameters: {'reg_alpha': 9.4849667628316e-06, 'reg_lambda': 9.780046753783228e-06, 'num_leaves': 297, 'learning_rate': 0.07282585402426092, 'max_depth': 11, 'colsample_bytree': 0.046422302231261946, 'subsample': 0.6487837928357725, 'min_child_samples': 7, 'subsample_freq': 6}. Best is trial 5 with value: 0.7528883183568679.
+[I 2023-06-17 13:34:15,170] Trial 11 finished with value: 0.7265725288831836 and parameters: {'reg_alpha': 5.816411698360145e-06, 'reg_lambda': 5.7538623436793445e-06, 'num_leaves': 279, 'learning_rate': 0.07619866025883058, 'max_depth': 20, 'colsample_bytree': 0.01167942674371728, 'subsample': 0.5265652996846099, 'min_child_samples': 15, 'subsample_freq': 2}. Best is trial 5 with value: 0.7528883183568679.
+[I 2023-06-17 13:34:15,468] Trial 12 finished with value: 0.7650834403080873 and parameters: {'reg_alpha': 6.69335428240185e-06, 'reg_lambda': 9.74374601120624e-06, 'num_leaves': 206, 'learning_rate': 0.09288693970361951, 'max_depth': 22, 'colsample_bytree': 0.011859147818738178, 'subsample': 0.5247167772372816, 'min_child_samples': 9, 'subsample_freq': 6}. Best is trial 12 with value: 0.7650834403080873.
+[I 2023-06-17 13:34:15,787] Trial 13 finished with value: 0.738767650834403 and parameters: {'reg_alpha': 6.953964103105656e-06, 'reg_lambda': 9.943306076039423e-06, 'num_leaves': 273, 'learning_rate': 0.09971687673934809, 'max_depth': 12, 'colsample_bytree': 0.031348457122249, 'subsample': 0.4304307793124693, 'min_child_samples': 8, 'subsample_freq': 6}. Best is trial 12 with value: 0.7650834403080873.
+[I 2023-06-17 13:34:16,177] Trial 14 finished with value: 0.738767650834403 and parameters: {'reg_alpha': 7.128518019355255e-06, 'reg_lambda': 8.5714444133294e-06, 'num_leaves': 209, 'learning_rate': 0.0673232134099921, 'max_depth': 20, 'colsample_bytree': 0.04568704849623296, 'subsample': 0.6680358099866621, 'min_child_samples': 5, 'subsample_freq': 6}. Best is trial 12 with value: 0.7650834403080873.
+[I 2023-06-17 13:34:16,491] Trial 15 finished with value: 0.7265725288831836 and parameters: {'reg_alpha': 5.747667714861605e-06, 'reg_lambda': 9.999110083075624e-06, 'num_leaves': 298, 'learning_rate': 0.06144670000469643, 'max_depth': 25, 'colsample_bytree': 0.020338447665204075, 'subsample': 0.8302928885008847, 'min_child_samples': 16, 'subsample_freq': 5}. Best is trial 12 with value: 0.7650834403080873.
+[I 2023-06-17 13:34:16,735] Trial 16 finished with value: 0.6861360718870345 and parameters: {'reg_alpha': 8.188206901810313e-06, 'reg_lambda': 8.060626898225589e-06, 'num_leaves': 263, 'learning_rate': 0.08162978250523437, 'max_depth': 17, 'colsample_bytree': 0.03395671958172401, 'subsample': 0.5939923190174299, 'min_child_samples': 10, 'subsample_freq': 7}. Best is trial 12 with value: 0.7650834403080873.
+[I 2023-06-17 13:34:17,163] Trial 17 finished with value: 0.7265725288831836 and parameters: {'reg_alpha': 2.4745894252419305e-06, 'reg_lambda': 7.33362961621954e-06, 'num_leaves': 218, 'learning_rate': 0.09809899072602143, 'max_depth': 26, 'colsample_bytree': 0.0101507540686873, 'subsample': 0.8370272435969148, 'min_child_samples': 10, 'subsample_freq': 2}. Best is trial 12 with value: 0.7650834403080873.
+[I 2023-06-17 13:34:17,470] Trial 18 finished with value: 0.7002567394094994 and parameters: {'reg_alpha': 4.7784032890908e-06, 'reg_lambda': 8.897264705814403e-06, 'num_leaves': 191, 'learning_rate': 0.06707970282419422, 'max_depth': 15, 'colsample_bytree': 0.022315588778219743, 'subsample': 0.4454963337837899, 'min_child_samples': 14, 'subsample_freq': 5}. Best is trial 12 with value: 0.7650834403080873.
+[I 2023-06-17 13:34:17,745] Trial 19 finished with value: 0.7002567394094994 and parameters: {'reg_alpha': 6.262784500821317e-06, 'reg_lambda': 2.474053822659266e-07, 'num_leaves': 243, 'learning_rate': 0.08939467295524635, 'max_depth': 24, 'colsample_bytree': 0.038875254943064666, 'subsample': 0.6372633172864225, 'min_child_samples': 18, 'subsample_freq': 7}. Best is trial 12 with value: 0.7650834403080873.
+[I 2023-06-17 13:34:18,023] Trial 20 finished with value: 0.6598202824133504 and parameters: {'reg_alpha': 4.62790420022871e-06, 'reg_lambda': 9.320443540040562e-06, 'num_leaves': 151, 'learning_rate': 0.07832923274256272, 'max_depth': 40, 'colsample_bytree': 0.060983252696281035, 'subsample': 0.3392734212121398, 'min_child_samples': 5, 'subsample_freq': 3}. Best is trial 12 with value: 0.7650834403080873.
+[I 2023-06-17 13:34:18,269] Trial 21 finished with value: 0.7548138639281129 and parameters: {'reg_alpha': 6.725748433215042e-06, 'reg_lambda': 9.752542949146493e-06, 'num_leaves': 272, 'learning_rate': 0.09911566128935745, 'max_depth': 14, 'colsample_bytree': 0.025657074287072073, 'subsample': 0.46671673837583094, 'min_child_samples': 8, 'subsample_freq': 7}. Best is trial 12 with value: 0.7650834403080873.
+[I 2023-06-17 13:34:18,520] Trial 22 finished with value: 0.7124518613607188 and parameters: {'reg_alpha': 6.386977603325753e-06, 'reg_lambda': 8.95361428998238e-06, 'num_leaves': 285, 'learning_rate': 0.09414693504949792, 'max_depth': 14, 'colsample_bytree': 0.019000538432225572, 'subsample': 0.5504483876697461, 'min_child_samples': 11, 'subsample_freq': 7}. Best is trial 12 with value: 0.7650834403080873.
+[I 2023-06-17 13:34:18,741] Trial 23 finished with value: 0.7124518613607188 and parameters: {'reg_alpha': 5.056908496160793e-06, 'reg_lambda': 7.92202812105847e-06, 'num_leaves': 253, 'learning_rate': 0.0887606273064627, 'max_depth': 21, 'colsample_bytree': 0.026100684736293484, 'subsample': 0.4862726819745633, 'min_child_samples': 9, 'subsample_freq': 8}. Best is trial 12 with value: 0.7650834403080873.
+[I 2023-06-17 13:34:19,036] Trial 24 finished with value: 0.7002567394094994 and parameters: {'reg_alpha': 7.792629766067361e-06, 'reg_lambda': 9.936907858420925e-06, 'num_leaves': 269, 'learning_rate': 0.09962056040645303, 'max_depth': 10, 'colsample_bytree': 0.018475588938629158, 'subsample': 0.3688153779372023, 'min_child_samples': 6, 'subsample_freq': 5}. Best is trial 12 with value: 0.7650834403080873.
+[I 2023-06-17 13:34:19,343] Trial 25 finished with value: 0.6861360718870345 and parameters: {'reg_alpha': 6.074322005822748e-06, 'reg_lambda': 9.074499835315332e-06, 'num_leaves': 224, 'learning_rate': 0.08357944393324926, 'max_depth': 17, 'colsample_bytree': 0.039445355151518924, 'subsample': 0.60200877111092, 'min_child_samples': 11, 'subsample_freq': 7}. Best is trial 12 with value: 0.7650834403080873.
+[I 2023-06-17 13:34:19,669] Trial 26 finished with value: 0.7002567394094994 and parameters: {'reg_alpha': 5.359879666220161e-06, 'reg_lambda': 7.784288501310642e-06, 'num_leaves': 286, 'learning_rate': 0.09274121994744042, 'max_depth': 28, 'colsample_bytree': 0.027667473773856817, 'subsample': 0.4913948622152159, 'min_child_samples': 4, 'subsample_freq': 9}. Best is trial 12 with value: 0.7650834403080873.
+[I 2023-06-17 13:34:20,020] Trial 27 finished with value: 0.7002567394094994 and parameters: {'reg_alpha': 7.781349139299146e-06, 'reg_lambda': 8.589688421073841e-06, 'num_leaves': 191, 'learning_rate': 0.08411876647774123, 'max_depth': 22, 'colsample_bytree': 0.01759890745025341, 'subsample': 0.6971648416911991, 'min_child_samples': 8, 'subsample_freq': 6}. Best is trial 12 with value: 0.7650834403080873.
+[I 2023-06-17 13:34:20,299] Trial 28 finished with value: 0.738767650834403 and parameters: {'reg_alpha': 9.396013836606607e-06, 'reg_lambda': 9.418010190327862e-06, 'num_leaves': 236, 'learning_rate': 0.07722851640995727, 'max_depth': 15, 'colsample_bytree': 0.03385857568006434, 'subsample': 0.5478879610891895, 'min_child_samples': 13, 'subsample_freq': 3}. Best is trial 12 with value: 0.7650834403080873.
+[I 2023-06-17 13:34:20,532] Trial 29 finished with value: 0.7650834403080873 and parameters: {'reg_alpha': 6.493645831303037e-06, 'reg_lambda': 7.25038279414387e-06, 'num_leaves': 264, 'learning_rate': 0.09137729672464998, 'max_depth': 37, 'colsample_bytree': 0.028534227900319654, 'subsample': 0.32912352782141197, 'min_child_samples': 17, 'subsample_freq': 9}. Best is trial 12 with value: 0.7650834403080873.
+[I 2023-06-17 13:34:20,783] Trial 30 finished with value: 0.738767650834403 and parameters: {'reg_alpha': 6.547920495520985e-06, 'reg_lambda': 7.115213320229354e-06, 'num_leaves': 260, 'learning_rate': 0.09249284890138831, 'max_depth': 39, 'colsample_bytree': 0.025107747310274167, 'subsample': 0.3014677072562971, 'min_child_samples': 19, 'subsample_freq': 10}. Best is trial 12 with value: 0.7650834403080873.
+[I 2023-06-17 13:34:20,993] Trial 31 finished with value: 0.803594351732991 and parameters: {'reg_alpha': 5.466722266660606e-06, 'reg_lambda': 9.368741367548251e-06, 'num_leaves': 269, 'learning_rate': 0.08910079912479407, 'max_depth': 37, 'colsample_bytree': 0.029629249652321058, 'subsample': 0.2724619458652722, 'min_child_samples': 17, 'subsample_freq': 9}. Best is trial 31 with value: 0.803594351732991.
+[I 2023-06-17 13:34:21,369] Trial 32 finished with value: 0.7246469833119383 and parameters: {'reg_alpha': 7.068499799643547e-06, 'reg_lambda': 8.52375728658937e-06, 'num_leaves': 286, 'learning_rate': 0.09270049521821348, 'max_depth': 37, 'colsample_bytree': 0.029807263631649886, 'subsample': 0.2539346129786737, 'min_child_samples': 17, 'subsample_freq': 9}. Best is trial 31 with value: 0.803594351732991.
+[I 2023-06-17 13:34:21,689] Trial 33 finished with value: 0.738767650834403 and parameters: {'reg_alpha': 6.653956626237971e-06, 'reg_lambda': 9.190729180144734e-06, 'num_leaves': 248, 'learning_rate': 0.08963318005409251, 'max_depth': 44, 'colsample_bytree': 0.0163478625124283, 'subsample': 0.38467106196945394, 'min_child_samples': 19, 'subsample_freq': 8}. Best is trial 31 with value: 0.803594351732991.
+[I 2023-06-17 13:34:22,227] Trial 34 finished with value: 0.7265725288831836 and parameters: {'reg_alpha': 6.003717997341686e-06, 'reg_lambda': 6.637393423228901e-06, 'num_leaves': 261, 'learning_rate': 0.0956957222276708, 'max_depth': 44, 'colsample_bytree': 0.026763691997154303, 'subsample': 0.21313532808462127, 'min_child_samples': 17, 'subsample_freq': 9}. Best is trial 31 with value: 0.803594351732991.
+[I 2023-06-17 13:34:22,594] Trial 35 finished with value: 0.738767650834403 and parameters: {'reg_alpha': 5.43017556984322e-06, 'reg_lambda': 7.510393787881908e-06, 'num_leaves': 174, 'learning_rate': 0.08667544666408637, 'max_depth': 36, 'colsample_bytree': 0.02253940155685587, 'subsample': 0.40761038074927625, 'min_child_samples': 20, 'subsample_freq': 8}. Best is trial 31 with value: 0.803594351732991.
+[I 2023-06-17 13:34:22,962] Trial 36 finished with value: 0.7792041078305519 and parameters: {'reg_alpha': 7.368486091313521e-06, 'reg_lambda': 8.325882739364152e-06, 'num_leaves': 218, 'learning_rate': 0.08157548948090343, 'max_depth': 31, 'colsample_bytree': 0.015510165636043089, 'subsample': 0.3466047198201009, 'min_child_samples': 9, 'subsample_freq': 10}. Best is trial 31 with value: 0.803594351732991.
+[I 2023-06-17 13:34:23,377] Trial 37 finished with value: 0.6880616174582799 and parameters: {'reg_alpha': 7.388601136588045e-06, 'reg_lambda': 8.230951253482362e-06, 'num_leaves': 215, 'learning_rate': 0.0822990830013581, 'max_depth': 31, 'colsample_bytree': 0.014393163243459236, 'subsample': 0.3170396659177778, 'min_child_samples': 2, 'subsample_freq': 10}. Best is trial 31 with value: 0.803594351732991.
+[I 2023-06-17 13:34:23,627] Trial 38 finished with value: 0.7509627727856225 and parameters: {'reg_alpha': 7.511244273375415e-06, 'reg_lambda': 7.4529702079042836e-06, 'num_leaves': 198, 'learning_rate': 0.0799416477151411, 'max_depth': 29, 'colsample_bytree': 0.013773994918027714, 'subsample': 0.1892157214162785, 'min_child_samples': 15, 'subsample_freq': 10}. Best is trial 31 with value: 0.803594351732991.
+[I 2023-06-17 13:34:23,949] Trial 39 finished with value: 0.7124518613607188 and parameters: {'reg_alpha': 8.818679845974143e-06, 'reg_lambda': 8.628826233245164e-06, 'num_leaves': 223, 'learning_rate': 0.07345776834786186, 'max_depth': 35, 'colsample_bytree': 0.010234270415890472, 'subsample': 0.2777964384677663, 'min_child_samples': 9, 'subsample_freq': 9}. Best is trial 31 with value: 0.803594351732991.
+[I 2023-06-17 13:34:24,316] Trial 40 finished with value: 0.7913992297817715 and parameters: {'reg_alpha': 5.503498466927932e-06, 'reg_lambda': 6.873412339356124e-06, 'num_leaves': 211, 'learning_rate': 0.0871267131600589, 'max_depth': 42, 'colsample_bytree': 0.020495949250849993, 'subsample': 0.35879280785624285, 'min_child_samples': 12, 'subsample_freq': 8}. Best is trial 31 with value: 0.803594351732991.
+[I 2023-06-17 13:34:24,623] Trial 41 finished with value: 0.738767650834403 and parameters: {'reg_alpha': 6.018149859879682e-06, 'reg_lambda': 6.596853239447021e-06, 'num_leaves': 186, 'learning_rate': 0.08696508553436944, 'max_depth': 43, 'colsample_bytree': 0.016581773452411484, 'subsample': 0.3469633480278657, 'min_child_samples': 12, 'subsample_freq': 8}. Best is trial 31 with value: 0.803594351732991.
+[I 2023-06-17 13:34:24,875] Trial 42 finished with value: 0.7528883183568679 and parameters: {'reg_alpha': 5.257528353001609e-06, 'reg_lambda': 6.971666732961315e-06, 'num_leaves': 211, 'learning_rate': 0.09192941600896094, 'max_depth': 50, 'colsample_bytree': 0.01931179337734003, 'subsample': 0.38581905800233984, 'min_child_samples': 17, 'subsample_freq': 10}. Best is trial 31 with value: 0.803594351732991.
+[I 2023-06-17 13:34:25,121] Trial 43 finished with value: 0.7650834403080873 and parameters: {'reg_alpha': 4.409206216257303e-06, 'reg_lambda': 8.129028799669609e-06, 'num_leaves': 200, 'learning_rate': 0.08703426360654955, 'max_depth': 38, 'colsample_bytree': 0.02220650935851224, 'subsample': 0.300354751938199, 'min_child_samples': 15, 'subsample_freq': 9}. Best is trial 31 with value: 0.803594351732991.
+[I 2023-06-17 13:34:25,393] Trial 44 finished with value: 0.6335044929396663 and parameters: {'reg_alpha': 5.633893780807271e-06, 'reg_lambda': 6.111951056372995e-06, 'num_leaves': 230, 'learning_rate': 0.09608586961750562, 'max_depth': 33, 'colsample_bytree': 0.015000138891773221, 'subsample': 0.4195814409958847, 'min_child_samples': 7, 'subsample_freq': 9}. Best is trial 31 with value: 0.803594351732991.
+[I 2023-06-17 13:34:25,626] Trial 45 finished with value: 0.8177150192554556 and parameters: {'reg_alpha': 6.833177329036985e-06, 'reg_lambda': 4.958487110482849e-06, 'num_leaves': 241, 'learning_rate': 0.08139171493009001, 'max_depth': 42, 'colsample_bytree': 0.032120190527832874, 'subsample': 0.2178632721062016, 'min_child_samples': 13, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:25,850] Trial 46 finished with value: 0.6861360718870345 and parameters: {'reg_alpha': 7.038037987216774e-06, 'reg_lambda': 4.7911873670578926e-06, 'num_leaves': 240, 'learning_rate': 0.08131293697090068, 'max_depth': 41, 'colsample_bytree': 0.031802377254478195, 'subsample': 0.17290031554397695, 'min_child_samples': 13, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:26,089] Trial 47 finished with value: 0.7528883183568679 and parameters: {'reg_alpha': 5.6457552124640885e-06, 'reg_lambda': 5.55199619086776e-06, 'num_leaves': 170, 'learning_rate': 0.07459939789965549, 'max_depth': 46, 'colsample_bytree': 0.02296107963848295, 'subsample': 0.2615735963006692, 'min_child_samples': 9, 'subsample_freq': 8}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:26,328] Trial 48 finished with value: 0.7913992297817715 and parameters: {'reg_alpha': 4.1861800647397456e-06, 'reg_lambda': 4.023977409676484e-06, 'num_leaves': 218, 'learning_rate': 0.0706396693917404, 'max_depth': 42, 'colsample_bytree': 0.014229865187637207, 'subsample': 0.22393357539941627, 'min_child_samples': 12, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:26,541] Trial 49 finished with value: 0.67201540436457 and parameters: {'reg_alpha': 3.910713544720314e-06, 'reg_lambda': 4.27447445066336e-06, 'num_leaves': 228, 'learning_rate': 0.07110659396501755, 'max_depth': 47, 'colsample_bytree': 0.01408413399504038, 'subsample': 0.10730180445304276, 'min_child_samples': 12, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:26,780] Trial 50 finished with value: 0.7650834403080873 and parameters: {'reg_alpha': 4.903139029468073e-06, 'reg_lambda': 4.180964087613467e-06, 'num_leaves': 218, 'learning_rate': 0.07778698777857929, 'max_depth': 42, 'colsample_bytree': 0.020817516177103736, 'subsample': 0.22654113872738554, 'min_child_samples': 14, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:27,163] Trial 51 finished with value: 0.7528883183568679 and parameters: {'reg_alpha': 4.1815920844525684e-06, 'reg_lambda': 5.163266357620727e-06, 'num_leaves': 206, 'learning_rate': 0.08430589206918249, 'max_depth': 45, 'colsample_bytree': 0.010242820568928597, 'subsample': 0.16231426614989067, 'min_child_samples': 11, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:27,572] Trial 52 finished with value: 0.6983311938382541 and parameters: {'reg_alpha': 6.248425462024658e-06, 'reg_lambda': 3.6511537345323593e-06, 'num_leaves': 212, 'learning_rate': 0.07931088039121094, 'max_depth': 40, 'colsample_bytree': 0.014000476282206582, 'subsample': 0.24338514147331108, 'min_child_samples': 10, 'subsample_freq': 9}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:27,875] Trial 53 finished with value: 0.7124518613607188 and parameters: {'reg_alpha': 6.7450474527517294e-06, 'reg_lambda': 9.615659491562484e-06, 'num_leaves': 221, 'learning_rate': 0.08497587981309207, 'max_depth': 42, 'colsample_bytree': 0.01841747099583769, 'subsample': 0.28314463940873, 'min_child_samples': 13, 'subsample_freq': 8}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:28,220] Trial 54 finished with value: 0.6983311938382541 and parameters: {'reg_alpha': 4.975630581861971e-06, 'reg_lambda': 9.542221781376732e-06, 'num_leaves': 200, 'learning_rate': 0.06978084271856716, 'max_depth': 34, 'colsample_bytree': 0.023814181173274097, 'subsample': 0.1512436733806693, 'min_child_samples': 7, 'subsample_freq': 9}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:28,599] Trial 55 finished with value: 0.7792041078305519 and parameters: {'reg_alpha': 3.3304734512029055e-06, 'reg_lambda': 8.947134469005305e-06, 'num_leaves': 235, 'learning_rate': 0.07523170507184522, 'max_depth': 31, 'colsample_bytree': 0.01267343206942688, 'subsample': 0.222434007139356, 'min_child_samples': 10, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:28,833] Trial 56 finished with value: 0.7913992297817715 and parameters: {'reg_alpha': 3.5269910466663763e-06, 'reg_lambda': 8.917639415544314e-06, 'num_leaves': 234, 'learning_rate': 0.07500809247443548, 'max_depth': 30, 'colsample_bytree': 0.030935845287178042, 'subsample': 0.23753319965265177, 'min_child_samples': 12, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:29,064] Trial 57 finished with value: 0.7913992297817715 and parameters: {'reg_alpha': 3.682325912445872e-06, 'reg_lambda': 7.676518277830257e-06, 'num_leaves': 252, 'learning_rate': 0.06272663655341268, 'max_depth': 27, 'colsample_bytree': 0.030569892556229546, 'subsample': 0.2145873490475823, 'min_child_samples': 12, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:29,262] Trial 58 finished with value: 0.6456996148908858 and parameters: {'reg_alpha': 2.853345660570886e-06, 'reg_lambda': 7.821884878631593e-06, 'num_leaves': 253, 'learning_rate': 0.06388624642731093, 'max_depth': 27, 'colsample_bytree': 0.036129056527159115, 'subsample': 0.14415789443230226, 'min_child_samples': 14, 'subsample_freq': 9}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:29,510] Trial 59 finished with value: 0.738767650834403 and parameters: {'reg_alpha': 4.483711199056706e-06, 'reg_lambda': 6.157321303495562e-06, 'num_leaves': 247, 'learning_rate': 0.055801751223226746, 'max_depth': 48, 'colsample_bytree': 0.029618865236394697, 'subsample': 0.19813658770884865, 'min_child_samples': 12, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:29,722] Trial 60 finished with value: 0.7124518613607188 and parameters: {'reg_alpha': 3.865205026368242e-06, 'reg_lambda': 6.650822966527391e-06, 'num_leaves': 242, 'learning_rate': 0.07095236380781746, 'max_depth': 24, 'colsample_bytree': 0.04229492696718241, 'subsample': 0.2334985599829437, 'min_child_samples': 16, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:29,963] Trial 61 finished with value: 0.7265725288831836 and parameters: {'reg_alpha': 3.601228784321972e-06, 'reg_lambda': 8.389755567725043e-06, 'num_leaves': 228, 'learning_rate': 0.07537366948543428, 'max_depth': 30, 'colsample_bytree': 0.03199432130916533, 'subsample': 0.27061282419326127, 'min_child_samples': 11, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:30,174] Trial 62 finished with value: 0.7124518613607188 and parameters: {'reg_alpha': 4.68769145350399e-06, 'reg_lambda': 8.745858999585013e-06, 'num_leaves': 255, 'learning_rate': 0.06629864473936399, 'max_depth': 39, 'colsample_bytree': 0.02648286216827223, 'subsample': 0.18680660890479703, 'min_child_samples': 14, 'subsample_freq': 9}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:30,394] Trial 63 finished with value: 0.7528883183568679 and parameters: {'reg_alpha': 3.1188305916920367e-06, 'reg_lambda': 7.714464546725388e-06, 'num_leaves': 232, 'learning_rate': 0.07948345601288588, 'max_depth': 32, 'colsample_bytree': 0.03628707638728464, 'subsample': 0.3466131114871879, 'min_child_samples': 12, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:30,624] Trial 64 finished with value: 0.6983311938382541 and parameters: {'reg_alpha': 4.177402494961643e-06, 'reg_lambda': 9.151639365423851e-06, 'num_leaves': 237, 'learning_rate': 0.07346311139422722, 'max_depth': 28, 'colsample_bytree': 0.02865637249109588, 'subsample': 0.2030531805223943, 'min_child_samples': 13, 'subsample_freq': 9}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:30,886] Trial 65 finished with value: 0.7528883183568679 and parameters: {'reg_alpha': 5.11823615457713e-06, 'reg_lambda': 8.188668807292143e-06, 'num_leaves': 250, 'learning_rate': 0.08213679300948462, 'max_depth': 36, 'colsample_bytree': 0.024399543789586482, 'subsample': 0.30018551039317265, 'min_child_samples': 10, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:31,137] Trial 66 finished with value: 0.7124518613607188 and parameters: {'reg_alpha': 2.2182070931022907e-06, 'reg_lambda': 8.809679736808705e-06, 'num_leaves': 278, 'learning_rate': 0.060730532490875545, 'max_depth': 25, 'colsample_bytree': 0.020853314057234392, 'subsample': 0.24291640548773896, 'min_child_samples': 15, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:31,433] Trial 67 finished with value: 0.6739409499358152 and parameters: {'reg_alpha': 4.770436541285804e-06, 'reg_lambda': 9.35292058832319e-06, 'num_leaves': 267, 'learning_rate': 0.07690655249312715, 'max_depth': 41, 'colsample_bytree': 0.033388625503934885, 'subsample': 0.12592087961770887, 'min_child_samples': 11, 'subsample_freq': 9}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:31,714] Trial 68 finished with value: 0.738767650834403 and parameters: {'reg_alpha': 4.160945048939908e-06, 'reg_lambda': 7.537182300346973e-06, 'num_leaves': 219, 'learning_rate': 0.08837634128616055, 'max_depth': 38, 'colsample_bytree': 0.03008010801608094, 'subsample': 0.2673090305742272, 'min_child_samples': 12, 'subsample_freq': 8}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:32,007] Trial 69 finished with value: 0.7913992297817715 and parameters: {'reg_alpha': 3.6047904549948987e-06, 'reg_lambda': 8.341226736206467e-06, 'num_leaves': 245, 'learning_rate': 0.06839308680378803, 'max_depth': 33, 'colsample_bytree': 0.01680383527677016, 'subsample': 0.3242310531426571, 'min_child_samples': 13, 'subsample_freq': 9}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:32,293] Trial 70 finished with value: 0.6861360718870345 and parameters: {'reg_alpha': 3.5898175944470653e-06, 'reg_lambda': 7.8551664421891e-06, 'num_leaves': 242, 'learning_rate': 0.06819266691813823, 'max_depth': 43, 'colsample_bytree': 0.020161614050913598, 'subsample': 0.21357321537340776, 'min_child_samples': 13, 'subsample_freq': 9}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:32,828] Trial 71 finished with value: 0.7650834403080873 and parameters: {'reg_alpha': 4.572734862275405e-06, 'reg_lambda': 8.37373958808928e-06, 'num_leaves': 246, 'learning_rate': 0.07213056658823405, 'max_depth': 34, 'colsample_bytree': 0.025049360843253737, 'subsample': 0.30823099660945885, 'min_child_samples': 12, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:33,212] Trial 72 finished with value: 0.6861360718870345 and parameters: {'reg_alpha': 3.910743227137148e-06, 'reg_lambda': 8.086556477691357e-06, 'num_leaves': 257, 'learning_rate': 0.06517137575014685, 'max_depth': 30, 'colsample_bytree': 0.01714591544314907, 'subsample': 0.36303050166566564, 'min_child_samples': 13, 'subsample_freq': 9}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:33,534] Trial 73 finished with value: 0.7528883183568679 and parameters: {'reg_alpha': 5.337059326074386e-06, 'reg_lambda': 8.715914323793236e-06, 'num_leaves': 225, 'learning_rate': 0.07072140293683056, 'max_depth': 32, 'colsample_bytree': 0.016757300385110856, 'subsample': 0.24760387386533406, 'min_child_samples': 11, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:33,815] Trial 74 finished with value: 0.738767650834403 and parameters: {'reg_alpha': 3.0664381074209104e-06, 'reg_lambda': 9.055752281170607e-06, 'num_leaves': 215, 'learning_rate': 0.06836275742023559, 'max_depth': 27, 'colsample_bytree': 0.027325785359875156, 'subsample': 0.32220011489608785, 'min_child_samples': 14, 'subsample_freq': 9}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:34,067] Trial 75 finished with value: 0.7124518613607188 and parameters: {'reg_alpha': 3.5430401420861563e-06, 'reg_lambda': 7.215250245336369e-06, 'num_leaves': 232, 'learning_rate': 0.08036433759913221, 'max_depth': 29, 'colsample_bytree': 0.022699664336450827, 'subsample': 0.2902726071356899, 'min_child_samples': 14, 'subsample_freq': 1}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:34,318] Trial 76 finished with value: 0.7528883183568679 and parameters: {'reg_alpha': 4.369190457963379e-06, 'reg_lambda': 8.403882704422792e-06, 'num_leaves': 239, 'learning_rate': 0.08466923405846477, 'max_depth': 35, 'colsample_bytree': 0.012031616268681112, 'subsample': 0.3292460963143919, 'min_child_samples': 16, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:34,584] Trial 77 finished with value: 0.7124518613607188 and parameters: {'reg_alpha': 6.274107487125823e-06, 'reg_lambda': 9.403758428604548e-06, 'num_leaves': 274, 'learning_rate': 0.07705730311090644, 'max_depth': 33, 'colsample_bytree': 0.01856994565716151, 'subsample': 0.1848861662182153, 'min_child_samples': 8, 'subsample_freq': 8}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:34,897] Trial 78 finished with value: 0.7528883183568679 and parameters: {'reg_alpha': 5.846823084357077e-06, 'reg_lambda': 7.996378890914665e-06, 'num_leaves': 259, 'learning_rate': 0.08257868253677735, 'max_depth': 37, 'colsample_bytree': 0.020711552173137644, 'subsample': 0.25744411177322535, 'min_child_samples': 11, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:35,274] Trial 79 finished with value: 0.6861360718870345 and parameters: {'reg_alpha': 5.531376044298831e-06, 'reg_lambda': 7.648450400326647e-06, 'num_leaves': 225, 'learning_rate': 0.07425746818663381, 'max_depth': 31, 'colsample_bytree': 0.015317837312024638, 'subsample': 0.2811766452492479, 'min_child_samples': 9, 'subsample_freq': 9}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:35,722] Trial 80 finished with value: 0.7528883183568679 and parameters: {'reg_alpha': 5.082047229725197e-06, 'reg_lambda': 9.742796849557028e-06, 'num_leaves': 208, 'learning_rate': 0.08609623629816102, 'max_depth': 26, 'colsample_bytree': 0.02786763060174598, 'subsample': 0.3959653863334006, 'min_child_samples': 12, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:36,036] Trial 81 finished with value: 0.7913992297817715 and parameters: {'reg_alpha': 3.500159268362449e-06, 'reg_lambda': 9.115067724267246e-06, 'num_leaves': 235, 'learning_rate': 0.07592141083815848, 'max_depth': 31, 'colsample_bytree': 0.013357326811004298, 'subsample': 0.21438257939736807, 'min_child_samples': 10, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:36,307] Trial 82 finished with value: 0.7792041078305519 and parameters: {'reg_alpha': 3.7457007169003016e-06, 'reg_lambda': 8.937884178796169e-06, 'num_leaves': 244, 'learning_rate': 0.08918323385077676, 'max_depth': 29, 'colsample_bytree': 0.015072901809256647, 'subsample': 0.2219900862344286, 'min_child_samples': 10, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:36,595] Trial 83 finished with value: 0.7528883183568679 and parameters: {'reg_alpha': 3.3602550013310547e-06, 'reg_lambda': 8.545462951682e-06, 'num_leaves': 293, 'learning_rate': 0.0775412789248137, 'max_depth': 45, 'colsample_bytree': 0.012284907515173221, 'subsample': 0.19927002921060624, 'min_child_samples': 13, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:36,989] Trial 84 finished with value: 0.738767650834403 and parameters: {'reg_alpha': 4.082745907322114e-06, 'reg_lambda': 9.204840510574754e-06, 'num_leaves': 215, 'learning_rate': 0.08070929963564594, 'max_depth': 32, 'colsample_bytree': 0.017566684153219415, 'subsample': 0.16353489495542672, 'min_child_samples': 11, 'subsample_freq': 9}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:37,390] Trial 85 finished with value: 0.6739409499358152 and parameters: {'reg_alpha': 4.340843198622184e-06, 'reg_lambda': 8.276175044091635e-06, 'num_leaves': 251, 'learning_rate': 0.07263778399320646, 'max_depth': 35, 'colsample_bytree': 0.025077133667912213, 'subsample': 0.24463370534758005, 'min_child_samples': 10, 'subsample_freq': 7}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:37,780] Trial 86 finished with value: 0.7528883183568679 and parameters: {'reg_alpha': 2.8037577199566502e-06, 'reg_lambda': 8.782133686340415e-06, 'num_leaves': 236, 'learning_rate': 0.06934938204122297, 'max_depth': 40, 'colsample_bytree': 0.023629370061241474, 'subsample': 0.362804628654643, 'min_child_samples': 9, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:38,053] Trial 87 finished with value: 0.7246469833119383 and parameters: {'reg_alpha': 3.6878170211727976e-06, 'reg_lambda': 7.402271586911163e-06, 'num_leaves': 264, 'learning_rate': 0.07883380945713979, 'max_depth': 28, 'colsample_bytree': 0.010393414666074945, 'subsample': 0.316026375167769, 'min_child_samples': 18, 'subsample_freq': 8}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:38,413] Trial 88 finished with value: 0.7772785622593068 and parameters: {'reg_alpha': 6.799517092724115e-06, 'reg_lambda': 9.968687528233445e-06, 'num_leaves': 227, 'learning_rate': 0.08288345272976473, 'max_depth': 34, 'colsample_bytree': 0.021187001035922953, 'subsample': 0.2881305341505198, 'min_child_samples': 15, 'subsample_freq': 9}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:38,723] Trial 89 finished with value: 0.7528883183568679 and parameters: {'reg_alpha': 4.658281010349448e-06, 'reg_lambda': 9.511631054794294e-06, 'num_leaves': 195, 'learning_rate': 0.07576653721764243, 'max_depth': 39, 'colsample_bytree': 0.018823219202243058, 'subsample': 0.17542264035734328, 'min_child_samples': 6, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:39,077] Trial 90 finished with value: 0.7772785622593068 and parameters: {'reg_alpha': 7.3099449514776506e-06, 'reg_lambda': 8.025663547934411e-06, 'num_leaves': 231, 'learning_rate': 0.09078027682230941, 'max_depth': 42, 'colsample_bytree': 0.015695452306885026, 'subsample': 0.22589621116247366, 'min_child_samples': 12, 'subsample_freq': 9}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:39,430] Trial 91 finished with value: 0.7265725288831836 and parameters: {'reg_alpha': 3.25255532291131e-06, 'reg_lambda': 8.966007289540044e-06, 'num_leaves': 236, 'learning_rate': 0.07404421552051671, 'max_depth': 31, 'colsample_bytree': 0.013520049900379996, 'subsample': 0.2640984594680291, 'min_child_samples': 8, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:39,703] Trial 92 finished with value: 0.7265725288831836 and parameters: {'reg_alpha': 3.419790940235944e-06, 'reg_lambda': 8.53282485666143e-06, 'num_leaves': 221, 'learning_rate': 0.07187455881396201, 'max_depth': 30, 'colsample_bytree': 0.0137355702752298, 'subsample': 0.23192910587123355, 'min_child_samples': 10, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:39,976] Trial 93 finished with value: 0.7528883183568679 and parameters: {'reg_alpha': 3.967894128869646e-06, 'reg_lambda': 9.319090790476035e-06, 'num_leaves': 234, 'learning_rate': 0.0762392434542125, 'max_depth': 33, 'colsample_bytree': 0.012414838013362973, 'subsample': 0.20986708229928838, 'min_child_samples': 9, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:40,210] Trial 94 finished with value: 0.7265725288831836 and parameters: {'reg_alpha': 4.02703440566466e-06, 'reg_lambda': 8.98735912487149e-06, 'num_leaves': 239, 'learning_rate': 0.07854932460090203, 'max_depth': 31, 'colsample_bytree': 0.016521495289736125, 'subsample': 0.1318107852172427, 'min_child_samples': 11, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:40,534] Trial 95 finished with value: 0.67201540436457 and parameters: {'reg_alpha': 3.7538509157965855e-06, 'reg_lambda': 8.667786630002935e-06, 'num_leaves': 249, 'learning_rate': 0.07503709431938478, 'max_depth': 27, 'colsample_bytree': 0.01995842838856971, 'subsample': 0.1525127050409511, 'min_child_samples': 10, 'subsample_freq': 9}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:40,844] Trial 96 finished with value: 0.7528883183568679 and parameters: {'reg_alpha': 3.4454926629534653e-06, 'reg_lambda': 9.698369073949953e-06, 'num_leaves': 245, 'learning_rate': 0.08120556190831955, 'max_depth': 36, 'colsample_bytree': 0.03160221205085742, 'subsample': 0.34098054228531327, 'min_child_samples': 13, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:41,097] Trial 97 finished with value: 0.7528883183568679 and parameters: {'reg_alpha': 4.8698240752875666e-06, 'reg_lambda': 8.235088959163813e-06, 'num_leaves': 228, 'learning_rate': 0.08431429970145601, 'max_depth': 24, 'colsample_bytree': 0.01080518683571033, 'subsample': 0.2724648548002152, 'min_child_samples': 12, 'subsample_freq': 10}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:41,348] Trial 98 finished with value: 0.6861360718870345 and parameters: {'reg_alpha': 4.479433764818269e-06, 'reg_lambda': 9.25077855333062e-06, 'num_leaves': 212, 'learning_rate': 0.08721441190446041, 'max_depth': 30, 'colsample_bytree': 0.012724977309432514, 'subsample': 0.1842297494251861, 'min_child_samples': 10, 'subsample_freq': 9}. Best is trial 45 with value: 0.8177150192554556.
+[I 2023-06-17 13:34:41,592] Trial 99 finished with value: 0.7265725288831836 and parameters: {'reg_alpha': 5.828726264747135e-06, 'reg_lambda': 7.86110189452856e-06, 'num_leaves': 202, 'learning_rate': 0.0699043960988844, 'max_depth': 43, 'colsample_bytree': 0.02260743022163131, 'subsample': 0.21087651740497554, 'min_child_samples': 11, 'subsample_freq': 4}. Best is trial 45 with value: 0.8177150192554556.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>CPU times: total: 2min 25s
+Wall time: 29.1 s</code></pre>
+</div>
+</div>
+<section id="quick-visualization-for-hyperparameter-optimization-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="quick-visualization-for-hyperparameter-optimization-analysis">Quick Visualization for Hyperparameter Optimization Analysis</h2>
+<div class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Get the best set of hyperparameters</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>optimized_params <span class="op">=</span> study.best_trial.params</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>optimized_params</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<pre><code>{'reg_alpha': 6.833177329036985e-06,
+ 'reg_lambda': 4.958487110482849e-06,
+ 'num_leaves': 241,
+ 'learning_rate': 0.08139171493009001,
+ 'max_depth': 42,
+ 'colsample_bytree': 0.032120190527832874,
+ 'subsample': 0.2178632721062016,
+ 'min_child_samples': 13,
+ 'subsample_freq': 10}</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot_optimization_histor: shows the scores from all trials as well as the best score so far at each point.</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>optuna.visualization.plot_optimization_history(study)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>Unable to display output for mime type(s): application/vnd.plotly.v1+json</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>optuna.visualization.plot_slice(study)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>Unable to display output for mime type(s): application/vnd.plotly.v1+json</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize parameter importances.</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>optuna.visualization.plot_param_importances(study)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>Unable to display output for mime type(s): application/vnd.plotly.v1+json</code></pre>
+</div>
+</div>
+</section>
+<section id="lgbm-with-optimized-parameter" class="level2">
+<h2 class="anchored" data-anchor-id="lgbm-with-optimized-parameter">LGBM with Optimized Parameter</h2>
+<div class="cell" data-execution_count="27">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Additional params</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>optimized_params[<span class="st">'objective'</span>] <span class="op">=</span> <span class="st">'binary'</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>optimized_params[<span class="st">'metric'</span>] <span class="op">=</span> <span class="st">'binary_logloss'</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>optimized_params[<span class="st">'n_estimators'</span>] <span class="op">=</span> <span class="dv">200</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>optimized_params[<span class="st">'random_state'</span>] <span class="op">=</span> <span class="dv">23</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="co">## Updated optimized hyperparameters</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>optimized_params</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="27">
+<pre><code>{'reg_alpha': 6.833177329036985e-06,
+ 'reg_lambda': 4.958487110482849e-06,
+ 'num_leaves': 241,
+ 'learning_rate': 0.08139171493009001,
+ 'max_depth': 42,
+ 'colsample_bytree': 0.032120190527832874,
+ 'subsample': 0.2178632721062016,
+ 'min_child_samples': 13,
+ 'subsample_freq': 10,
+ 'objective': 'binary',
+ 'metric': 'binary_logloss',
+ 'n_estimators': 200,
+ 'random_state': 23}</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="28">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="op">%%</span>time</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>lgbm_model <span class="op">=</span> LGBMClassifier(<span class="op">**</span>optimized_params)</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>lgbm_model.fit(X_train, y_train)</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>y_predict <span class="op">=</span> lgbm_model.predict(X_test)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>CPU times: total: 469 ms
+Wall time: 95 ms</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="29">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>roc_auc_score(y_test, y_predict)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="29">
+<pre><code>0.8177150192554556</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="30">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>metrics <span class="op">=</span> []</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>cm <span class="op">=</span> []</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="31">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> precision_recall_fscore_support <span class="im">as</span> score</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> confusion_matrix, accuracy_score, roc_auc_score, auc</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> make_scorer, recall_score, precision_score</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> roc_curve, precision_recall_curve, matthews_corrcoef</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="32">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co">## In heart failure, 0 defines survive and 1 represents confirmed death</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>specificity <span class="op">=</span> make_scorer(precision_score, pos_label<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>npv <span class="op">=</span> make_scorer(recall_score, pos_label<span class="op">=</span><span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="33">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>precision, recall, fscore, _ <span class="op">=</span> score(y_test, y_predict, average<span class="op">=</span><span class="st">'binary'</span>)</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>accuracy <span class="op">=</span> accuracy_score(y_test, y_predict)</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>tnr <span class="op">=</span> precision_score(y_test, y_predict, pos_label<span class="op">=</span><span class="dv">0</span>, average<span class="op">=</span><span class="st">'binary'</span>)</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>npv <span class="op">=</span> recall_score(y_test, y_predict, pos_label<span class="op">=</span><span class="dv">0</span>, average<span class="op">=</span><span class="st">'binary'</span>)</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>mcc <span class="op">=</span> matthews_corrcoef(y_test, y_predict)</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>precision_curve, recall_curve, _ <span class="op">=</span> precision_recall_curve(y_test, y_predict)</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>pr <span class="op">=</span> auc(recall_curve, precision_curve)</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>roc <span class="op">=</span> roc_auc_score(y_test, y_predict)</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>cm.append(confusion_matrix(y_test, y_predict, labels<span class="op">=</span>[<span class="dv">1</span>,<span class="dv">0</span>]))</span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>metrics.append(pd.Series({<span class="st">'precision'</span>:precision,</span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'recall'</span>:recall,</span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'fscore'</span>:fscore,</span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'specificity'</span>:tnr,</span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'NPV'</span>: npv,</span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'accuracy'</span>:accuracy, </span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'MCC'</span>:mcc,</span>
+<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'Precision-Recall AUC'</span>:pr,</span>
+<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'ROC AUC'</span>:roc}))</span>
+<span id="cb30-21"><a href="#cb30-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-22"><a href="#cb30-22" aria-hidden="true" tabindex="-1"></a>metrics <span class="op">=</span> pd.concat(metrics, axis<span class="op">=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="34">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>metrics</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="34">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">0</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">precision</td>
+<td>0.866667</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">recall</td>
+<td>0.684211</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">fscore</td>
+<td>0.764706</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">specificity</td>
+<td>0.866667</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">NPV</td>
+<td>0.951220</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">accuracy</td>
+<td>0.866667</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">MCC</td>
+<td>0.682629</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">Precision-Recall AUC</td>
+<td>0.825439</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ROC AUC</td>
+<td>0.817715</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
