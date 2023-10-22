@@ -6,8 +6,10 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Rizdi Aprilian">
+<meta name="dcterms.date" content="2023-07-13">
 
-<title>rizdiaprilian.github.io - Rizdi Aprilian ML Journey</title>
+<title>rizdiaprilian.github.io - Vision Transformer</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -23,24 +25,22 @@ ul.task-list li input[type="checkbox"] {
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-listing/list.min.js"></script>
-<script src="site_libs/quarto-listing/quarto-listing.js"></script>
-<script src="site_libs/quarto-html/quarto.js"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -61,50 +61,19 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
-<script>
 
-  window.document.addEventListener("DOMContentLoaded", function (_event) {
-    const listingTargetEl = window.document.querySelector('#listing-listing .list');
-    if (!listingTargetEl) {
-      // No listing discovered, do not attach.
-      return; 
-    }
 
-    const options = {
-      valueNames: ['listing-date','listing-title','listing-author','listing-image','listing-description','listing-categories',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
-      
-      searchColumns: ["listing-date","listing-title","listing-author","listing-image","listing-description","listing-categories"],
-    };
-
-    window['quarto-listings'] = window['quarto-listings'] || {};
-    window['quarto-listings']['listing-listing'] = new List('listing-listing', options);
-
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  });
-
-  window.addEventListener('hashchange',() => {
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  })
-  </script>
-
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
-
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="../../styles.css">
 </head>
 
-<body class="nav-fixed">
+<body class="nav-fixed fullcontent">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
     <nav class="navbar navbar-expand-lg navbar-dark ">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container">
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../../index.html">
     <span class="navbar-title">rizdiaprilian.github.io</span>
     </a>
   </div>
@@ -115,7 +84,7 @@ ul.task-list li input[type="checkbox"] {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./about.html" rel="" target="">
+    <a class="nav-link" href="../../about.html" rel="" target="">
  <span class="menu-text">About</span></a>
   </li>  
   <li class="nav-item compact">
@@ -138,187 +107,80 @@ ul.task-list li input[type="checkbox"] {
 <!-- content -->
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
-    <div class="quarto-title column-page-left">
-      <h1 class="title">Rizdi Aprilian ML Journey</h1>
-                      </div>
+    <div class="quarto-title column-body">
+      <h1 class="title">Vision Transformer</h1>
+                                <div class="quarto-categories">
+                <div class="quarto-category">Vision Transformer</div>
+                <div class="quarto-category">Deep Learning</div>
+                <div class="quarto-category">Self Attention</div>
+              </div>
+                  </div>
   </div>
     
   
   <div class="quarto-title-meta">
 
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Rizdi Aprilian </p>
+            </div>
+    </div>
       
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">July 13, 2023</p>
+      </div>
+    </div>
     
       
     </div>
     
   
-  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(4)</span></div><div class="category" data-category="Bayesian">Bayesian <span class="quarto-category-count">(1)</span></div><div class="category" data-category="BentoML">BentoML <span class="quarto-category-count">(1)</span></div><div class="category" data-category="Deep Learning">Deep Learning <span class="quarto-category-count">(1)</span></div><div class="category" data-category="Hyperparameter">Hyperparameter <span class="quarto-category-count">(1)</span></div><div class="category" data-category="Optuna">Optuna <span class="quarto-category-count">(1)</span></div><div class="category" data-category="Self Attention">Self Attention <span class="quarto-category-count">(1)</span></div><div class="category" data-category="Vision Transformer">Vision Transformer <span class="quarto-category-count">(1)</span></div><div class="category" data-category="XGBoost">XGBoost <span class="quarto-category-count">(1)</span></div><div class="category" data-category="code">code <span class="quarto-category-count">(1)</span></div></div></div>
+    
 <!-- main -->
-<main class="content quarto-banner-title-block column-page-left" id="quarto-document-content">
+<main class="content quarto-banner-title-block" id="quarto-document-content">
 
 
 
 
+<p>Since the introduction of transformer neural network architecture from the paper <a href="https://arxiv.org/abs/1706.03762">Attention is all you need</a>, machine learning has once again taken a leap in bringing a new breath of improvement for natural language processing. Transformer architecture utilizes attention mechanisms that connect the encoder and decoder. This features help resolving issues of information loss for model dealing with long sequences, as it mainly happens in RNN-based seq2seq models. Harnessing the capability of capturing long-range dependencies among the elements in an input sequence, Transformer has become state-of-the-art that largely contribute to the expansion of NLP tasks, giving births to GPT-2, GPT-3, ChatGPT, BERT, RoBERTa, and XLNet.</p>
+<p>Many attempts has been taken to extend attention mechanism into image and challenges constantly occurred multiple times before eventually the utilization of small patch and self-attention-applied CNN showed a glimpse of light to accelerate the iteration. In turn, <a href="https://arxiv.org/abs/2010.11929">Vision Transformer (ViT)</a> was born. ViT adopts the original transformer architecture that allows this neural network to perform common visual tasks (mainly image recognition) without much comprimising scalability.</p>
+<p>Architechture-wise, the development of ViT follows much the same as the original Transformer did. A slight difference is that encoder-decoder architecture isn’t imparted in ViT, making the modification of input images necessary to make the data compatible to the transformer.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="index_files/figure-html/2eacc708-1-image.png" class="img-fluid figure-img"></p>
+<figcaption class="figure-caption">image.png</figcaption>
+</figure>
+</div>
+<p>From the given image showing a block of encoder above, it is made of two layers, followed by a normalization layer and residual connection each: 1) Multi-headed, bidirectional self-attention 2) Feed-forward transformation</p>
+<p>Several blocks of these encoder are stack a top of another to form encoder-type architechture in larger size.</p>
+<p>If a transformer converts texts into vector sequences, then how ViT replicates this process on input images?</p>
+<section id="input-sequence" class="level3">
+<h3 class="anchored" data-anchor-id="input-sequence">Input Sequence</h3>
+<p>The input processing begins with the decomposition into non-overlapping patches and form a series of projections on these patches to form a vector in sequence that is compatible with a transformer. Each vector is associated with a patch from the original image.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="index_files/figure-html/380a1704-1-image.png" class="img-fluid figure-img"></p>
+<figcaption class="figure-caption">image.png</figcaption>
+</figure>
+</div>
+<p>Followed next are the addition of positional embeddings and extra [class] token for each patch. Given that the transformer naturally is not recurrent-type as RNNs, it does not have information about positions of the patches. That explains the reason behind this additonal steps. The [class] token added to the beginning of the sequence acts as an aggregate to perform classification task.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="index_files/figure-html/378113fb-1-image.png" class="img-fluid figure-img"></p>
+<figcaption class="figure-caption">image.png</figcaption>
+</figure>
+</div>
 
 
+</section>
 
-
-<div class="quarto-listing quarto-listing-container-default" id="listing-listing">
-<div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-listing-file-modified-sort="1686308119305" data-listing-reading-time-sort="1">
-<div class="thumbnail">
-<p><a href="./posts/hello_world/index.html"> <div class="listing-item-img-placeholder card-img-top" >&nbsp;</div> </a></p>
-</div>
-<div class="body">
-<a href="./posts/hello_world/index.html">
-<h3 class="no-anchor listing-title">
-Start to write
-</h3>
-<div class="listing-subtitle">
-
-</div>
-<div class="listing-description">
-Begin to write
-</div>
-</a>
-</div>
-<div class="metadata">
-<a href="./posts/hello_world/index.html"> </a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="1" data-categories="Vision Transformer,Deep Learning,Self Attention" data-listing-date-sort="1689202800000" data-listing-file-modified-sort="1698001702612" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2">
-<div class="thumbnail">
-<p><a href="./posts/Vision_Transformer/index.html"> <p class="card-img-top"><img src="posts\Vision_Transformer\index_files\figure-html\2eacc708-1-image.png"  class="thumbnail-image card-img"/></p> </a></p>
-</div>
-<div class="body">
-<a href="./posts/Vision_Transformer/index.html">
-<h3 class="no-anchor listing-title">
-Vision Transformer
-</h3>
-<div class="listing-subtitle">
-
-</div>
-</a>
-<div class="listing-categories">
-<div class="listing-category" onclick="window.quartoListingCategory('Vision Transformer'); return false;">
-Vision Transformer
-</div>
-<div class="listing-category" onclick="window.quartoListingCategory('Deep Learning'); return false;">
-Deep Learning
-</div>
-<div class="listing-category" onclick="window.quartoListingCategory('Self Attention'); return false;">
-Self Attention
-</div>
-</div>
-<a href="./posts/Vision_Transformer/index.html">
-<div class="listing-description">
-Since the introduction of transformer neural network architecture from the paper Attention is all you need, machine learning has once again taken a leap in bringing a new breath of improvement for natural language processing. Transformer architecture utilizes attention…
-</div>
-</a>
-</div>
-<div class="metadata">
-<a href="./posts/Vision_Transformer/index.html">
-<div class="listing-date">
-Jul 13, 2023
-</div>
-<div class="listing-author">
-Rizdi Aprilian
-</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="2" data-categories="Hyperparameter,Optuna,Bayesian" data-listing-date-sort="1686956400000" data-listing-file-modified-sort="1687007291132" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1">
-<div class="thumbnail">
-<p><a href="./posts/Optimization_with_Optuna/index.html"> <div class="listing-item-img-placeholder card-img-top" >&nbsp;</div> </a></p>
-</div>
-<div class="body">
-<a href="./posts/Optimization_with_Optuna/index.html">
-<h3 class="no-anchor listing-title">
-Hyperparameter Optimization with Optuna
-</h3>
-<div class="listing-subtitle">
-
-</div>
-</a>
-<div class="listing-categories">
-<div class="listing-category" onclick="window.quartoListingCategory('Hyperparameter'); return false;">
-Hyperparameter
-</div>
-<div class="listing-category" onclick="window.quartoListingCategory('Optuna'); return false;">
-Optuna
-</div>
-<div class="listing-category" onclick="window.quartoListingCategory('Bayesian'); return false;">
-Bayesian
-</div>
-</div>
-<a href="./posts/Optimization_with_Optuna/index.html">
-<div class="listing-description">
-In developing predictive machine learning, a practice that many could not overlook at is pursuing a hyperparameter that return the best possible of optimum prediction on…
-</div>
-</a>
-</div>
-<div class="metadata">
-<a href="./posts/Optimization_with_Optuna/index.html">
-<div class="listing-date">
-Jun 17, 2023
-</div>
-<div class="listing-author">
-Rizdi Aprilian
-</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="3" data-categories="XGBoost,code,BentoML" data-listing-date-sort="1686265200000" data-listing-file-modified-sort="1686308773118" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="3">
-<div class="thumbnail">
-<p><a href="./posts/XGBoost_to_BentoML/index.html"> <p class="card-img-top"><img src="posts\XGBoost_to_BentoML\index_files\figure-html\cell-25-output-1.png"  class="thumbnail-image card-img"/></p> </a></p>
-</div>
-<div class="body">
-<a href="./posts/XGBoost_to_BentoML/index.html">
-<h3 class="no-anchor listing-title">
-Building XGBoost Package with BentoML
-</h3>
-<div class="listing-subtitle">
-
-</div>
-</a>
-<div class="listing-categories">
-<div class="listing-category" onclick="window.quartoListingCategory('XGBoost'); return false;">
-XGBoost
-</div>
-<div class="listing-category" onclick="window.quartoListingCategory('code'); return false;">
-code
-</div>
-<div class="listing-category" onclick="window.quartoListingCategory('BentoML'); return false;">
-BentoML
-</div>
-</div>
-<a href="./posts/XGBoost_to_BentoML/index.html">
-<div class="listing-description">
-After completing the training of the algorithm on the dataset, the next crucial step is deploying the model to serve predictions within an API interface. However, deploying…
-</div>
-</a>
-</div>
-<div class="metadata">
-<a href="./posts/XGBoost_to_BentoML/index.html">
-<div class="listing-date">
-Jun 9, 2023
-</div>
-<div class="listing-author">
-Rizdi Aprilian
-</div>
-</a>
-</div>
-</div>
-</div>
-<div class="listing-no-matching d-none">
-No matching items
-</div>
-</div></main> <!-- /main -->
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
